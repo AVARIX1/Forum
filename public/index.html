@@ -69,21 +69,6 @@
 
     .btn-ghost:hover { background: #111827; }
 
-    #user-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    #user-email-top {
-      font-size: 14px;
-      color: #9ca3af;
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
     /* LAYOUT */
     #layout {
       flex: 1;
@@ -122,6 +107,19 @@
       font-weight: 700;
       margin: 0 auto 10px auto;
       color: #e5e7eb;
+      overflow: hidden;
+    }
+
+    #avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: none;
+    }
+
+    #avatar-letter {
+      display: block;
     }
 
     #profile-name {
@@ -253,6 +251,19 @@
       font-weight: 700;
       color: #e5e7eb;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .topic-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: none;
+    }
+
+    .topic-avatar span {
+      display: block;
     }
 
     .topic-main {
@@ -371,6 +382,19 @@
       font-weight: 700;
       color: #e5e7eb;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .chat-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: none;
+    }
+
+    .chat-avatar span {
+      display: block;
     }
 
     .chat-bubble {
@@ -423,7 +447,8 @@
       font-size: 14px;
     }
 
-    #chat-image-url {
+    #chat-image-url,
+    #chat-image-file {
       width: 100%;
       padding: 7px 8px;
       border-radius: 10px;
@@ -431,6 +456,10 @@
       background: #020617;
       color: #e5e7eb;
       font-size: 13px;
+    }
+
+    #chat-image-file {
+      padding: 4px 8px;
     }
 
     #chat-msg {
@@ -454,7 +483,7 @@
       border-radius: 14px;
       padding: 20px;
       width: 90%;
-      max-width: 380px;
+      max-width: 420px;
       border: 1px solid #1f2937;
       position: relative;
       animation: pop 0.2s ease;
@@ -517,7 +546,6 @@
     @media (max-width: 600px) {
       #navbar { padding: 0 10px; }
       .logo { font-size: 20px; }
-      #user-email-top { max-width: 120px; }
     }
   </style>
 </head>
@@ -530,7 +558,7 @@
       <button id="btn-login" class="btn btn-ghost">Login</button>
       <button id="btn-register" class="btn btn-primary">Register</button>
       <div id="user-info" style="display:none;">
-        <span id="user-email-top"></span>
+        <button id="btn-settings" class="btn btn-ghost">Setări</button>
         <button id="btn-logout" class="btn btn-ghost">Logout</button>
       </div>
     </div>
@@ -541,7 +569,10 @@
     <!-- SIDEBAR -->
     <aside id="sidebar">
       <div id="profile-box">
-        <div id="avatar-circle">G</div>
+        <div id="avatar-circle">
+          <span id="avatar-letter">G</span>
+          <img id="avatar-image" alt="Avatar">
+        </div>
         <div id="profile-name">Guest</div>
         <div id="profile-email"></div>
         <div id="profile-bio"></div>
@@ -551,10 +582,10 @@
       <div id="news-box">
         <h3>Noutăți & update-uri</h3>
         <ul id="news-list">
-          <li>• Sistem de topicuri cu vizualizare tip chat.</li>
-          <li>• Căutare inteligentă după titlu și conținut.</li>
-          <li>• Profil personalizat cu nume și bio.</li>
-          <li>• Login persistent pentru utilizatori.</li>
+          <li>• Confirmare email obligatorie la înregistrare.</li>
+          <li>• Upload avatar din calculator (Cloud).</li>
+          <li>• Imagini în topicuri și mesaje.</li>
+          <li>• Vizualizare tip chat în topic.</li>
         </ul>
       </div>
     </aside>
@@ -562,7 +593,7 @@
     <!-- CONȚINUT -->
     <main id="content">
       <div id="top-bar">
-        <input id="search-input" type="text" placeholder="Caută topic după titlu, conținut sau link...">
+        <input id="search-input" type="text" placeholder="Caută topic după titlu, conținut sau tag...">
         <button id="search-clear" class="btn btn-ghost">Reset</button>
         <button id="btn-new-topic" class="btn btn-primary">Topic nou</button>
       </div>
@@ -589,6 +620,7 @@
         <div id="chat-form">
           <textarea id="chat-text-input" placeholder="Scrie un răspuns în acest topic..."></textarea>
           <input id="chat-image-url" type="text" placeholder="Link imagine (opțional)">
+          <input id="chat-image-file" type="file" accept="image/*">
           <button id="btn-chat-send" class="btn btn-primary">Trimite</button>
           <p id="chat-msg"></p>
         </div>
@@ -620,13 +652,16 @@
     </div>
   </div>
 
-  <!-- PROFILE MODAL -->
+  <!-- PROFILE / SETĂRI MODAL -->
   <div class="modal" id="profile-modal">
     <div class="modal-content">
       <span class="close" data-close="profile-modal">×</span>
-      <h2>Profil</h2>
+      <h2>Setări profil</h2>
       <input id="prof-name" type="text" placeholder="Nume afișat (nu email)">
       <textarea id="prof-bio" placeholder="Despre tine..."></textarea>
+      <label style="font-size:13px;color:#9ca3af;">Poză de profil (avatar):</label>
+      <input id="avatar-file" type="file" accept="image/*">
+      <button id="btn-avatar-upload" class="btn btn-ghost">Încarcă avatar</button>
       <button id="btn-profile-save" class="btn btn-primary">Salvează profilul</button>
       <p id="prof-msg"></p>
     </div>
@@ -639,7 +674,9 @@
       <h2>Topic nou</h2>
       <input id="topic-title-input" type="text" placeholder="Titlul topicului">
       <textarea id="topic-body-input" placeholder="Descrierea topicului..."></textarea>
+      <label style="font-size:13px;color:#9ca3af;">Imagine topic (link sau fișier):</label>
       <input id="topic-image-url-input" type="text" placeholder="Link imagine (opțional)">
+      <input id="topic-image-file-input" type="file" accept="image/*">
       <button id="btn-topic-save" class="btn btn-primary">Publică topic</button>
       <p id="topic-msg"></p>
     </div>
@@ -648,4 +685,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
