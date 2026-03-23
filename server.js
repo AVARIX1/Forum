@@ -1,152 +1,125 @@
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
+const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { Pool } = require("pg");
 
 const app = express();
-const PORT = 3000;
-const SECRET = "secretul_tau_super_puternic";
-
-// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("public"));
 
-// DB
-const db = new sqlite3.Database("database.db");
-
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    email TEXT UNIQUE,
-    password TEXT
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    title TEXT,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    post_id INTEGER,
-    user_id INTEGER,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// Helper: auth middleware
-function auth(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "No token" });
+// Create tables if not exist
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS posts (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id),
+      content TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
+}
+initDB();
+
+// REGISTER
+app.post("/register", async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-    req.user = jwt.verify(token, SECRET);
+    const hashed = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      "INSERT INTO users (email, password) VALUES ($1, $2)",
+      [email, hashed]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, error: "Email already exists" });
+  }
+});
+
+// LOGIN
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  const result = await pool.query(
+    "SELECT * FROM users WHERE email = $1",
+    [email]
+  );
+
+  if (result.rows.length === 0) {
+    return res.json({ success: false, error: "User not found" });
+  }
+
+  const user = result.rows[0];
+  const match = await bcrypt.compare(password, user.password);
+
+  if (!match) {
+    return res.json({ success: false, error: "Wrong password" });
+  }
+
+  const token = jwt.sign({ id: user.id }, process.env.SECRET, {
+    expiresIn: "7d"
+  });
+
+  res.json({ success: true, token });
+});
+
+// AUTH MIDDLEWARE
+function auth(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header) return res.json({ success: false, error: "No token" });
+
+  const token = header.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET);
+    req.user = decoded;
     next();
   } catch {
-    res.status(401).json({ error: "Invalid token" });
+    res.json({ success: false, error: "Invalid token" });
   }
 }
 
-// Register
-app.post("/api/register", (req, res) => {
-  const { username, email, password } = req.body;
-  const hash = bcrypt.hashSync(password, 10);
+// CREATE POST
+app.post("/post", auth, async (req, res) => {
+  const { content } = req.body;
 
-  db.run(
-    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-    [username, email, hash],
-    function (err) {
-      if (err) return res.json({ error: "User exists" });
-      res.json({ success: true });
-    }
+  await pool.query(
+    "INSERT INTO posts (user_id, content) VALUES ($1, $2)",
+    [req.user.id, content]
   );
+
+  res.json({ success: true });
 });
 
-// Login
-app.post("/api/login", (req, res) => {
-  const { email, password } = req.body;
+// GET POSTS
+app.get("/posts", async (req, res) => {
+  const result = await pool.query(`
+    SELECT posts.id, posts.content, posts.created_at, users.email
+    FROM posts
+    JOIN users ON posts.user_id = users.id
+    ORDER BY posts.id DESC
+  `);
 
-  db.get("SELECT * FROM users WHERE email = ?", [email], (err, user) => {
-    if (!user) return res.json({ error: "User not found" });
-
-    if (!bcrypt.compareSync(password, user.password))
-      return res.json({ error: "Wrong password" });
-
-    const token = jwt.sign({ id: user.id, username: user.username }, SECRET);
-    res.json({ token });
-  });
+  res.json(result.rows);
 });
 
-// Create post
-app.post("/api/posts", auth, (req, res) => {
-  const { title, content } = req.body;
+// Vercel serverless export
+module.exports = app;
 
-  db.run(
-    "INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)",
-    [req.user.id, title, content],
-    function () {
-      res.json({ id: this.lastID });
-    }
-  );
-});
-
-// Get all posts
-app.get("/api/posts", (req, res) => {
-  db.all(
-    `SELECT posts.*, users.username 
-     FROM posts 
-     JOIN users ON posts.user_id = users.id 
-     ORDER BY posts.id DESC`,
-    (err, rows) => res.json(rows)
-  );
-});
-
-// Get single post + comments
-app.get("/api/posts/:id", (req, res) => {
-  const postId = req.params.id;
-
-  db.get(
-    `SELECT posts.*, users.username 
-     FROM posts 
-     JOIN users ON posts.user_id = users.id 
-     WHERE posts.id = ?`,
-    [postId],
-    (err, post) => {
-      if (!post) return res.json({ error: "Not found" });
-
-      db.all(
-        `SELECT comments.*, users.username 
-         FROM comments 
-         JOIN users ON comments.user_id = users.id 
-         WHERE post_id = ?`,
-        [postId],
-        (err, comments) => {
-          res.json({ post, comments });
-        }
-      );
-    }
-  );
-});
-
-// Add comment
-app.post("/api/comments", auth, (req, res) => {
-  const { post_id, content } = req.body;
-
-  db.run(
-    "INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)",
-    [post_id, req.user.id, content],
-    function () {
-      res.json({ id: this.lastID });
-    }
-  );
-});
-
-app.listen(PORT, () => {
-  console.log("Forum running on http://localhost:" + PORT);
-});
