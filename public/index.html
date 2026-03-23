@@ -1,53 +1,209 @@
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
+  <meta charset="UTF-8" />
   <title>Forum</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; background: #111; color: #eee; }
+    h1, h2 { text-align: center; }
+    .card { background: #1b1b1b; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+    input, textarea, button { width: 100%; margin: 5px 0; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #222; color: #eee; }
+    button { cursor: pointer; background: #3b82f6; border: none; }
+    button:hover { background: #2563eb; }
+    .row { display: flex; gap: 10px; }
+    .row > div { flex: 1; }
+    .post { border-bottom: 1px solid #333; padding: 8px 0; }
+    .meta { font-size: 12px; color: #aaa; }
+    .error { color: #f87171; margin-top: 5px; }
+    .success { color: #4ade80; margin-top: 5px; }
+  </style>
 </head>
 <body>
+  <h1>Forum simplu</h1>
 
-<div class="container">
-  <h1>Forum</h1>
-  <button onclick="logout()">Logout</button>
-
-  <h2>Crează o postare</h2>
-  <input id="title" placeholder="Titlu">
-  <textarea id="content" placeholder="Conținut"></textarea>
-  <button onclick="createPost()">Postează</button>
-
-  <h2>Postări recente</h2>
-  <div id="posts"></div>
-</div>
-
-<script src="app.js"></script>
-<script>
-async function loadPosts() {
-  const posts = await api("/posts");
-  const box = document.getElementById("posts");
-  box.innerHTML = "";
-
-  posts.forEach(p => {
-    box.innerHTML += `
-      <div class="post">
-        <h3><a href="post.html?id=${p.id}">${p.title}</a></h3>
-        <small>de ${p.username} • ${p.created_at}</small>
+  <div class="card">
+    <h2>Autentificare</h2>
+    <div class="row">
+      <div>
+        <h3>Register</h3>
+        <input id="reg-email" type="email" placeholder="Email" />
+        <input id="reg-pass" type="password" placeholder="Parolă" />
+        <button onclick="register()">Creează cont</button>
+        <div id="reg-msg"></div>
       </div>
-    `;
-  });
-}
+      <div>
+        <h3>Login</h3>
+        <input id="log-email" type="email" placeholder="Email" />
+        <input id="log-pass" type="password" placeholder="Parolă" />
+        <button onclick="login()">Intră în cont</button>
+        <div id="log-msg"></div>
+      </div>
+    </div>
+  </div>
 
-async function createPost() {
-  const title = document.getElementById("title").value;
-  const content = document.getElementById("content").value;
+  <div class="card" id="post-area" style="display:none;">
+    <h2>Scrie o postare</h2>
+    <textarea id="post-content" rows="3" placeholder="Scrie ceva..."></textarea>
+    <button onclick="createPost()">Publică</button>
+    <div id="post-msg"></div>
+  </div>
 
-  const res = await api("/posts", "POST", { title, content });
+  <div class="card">
+    <h2>Postări</h2>
+    <div id="posts"></div>
+  </div>
 
-  if (res.error) alert(res.error);
-  else loadPosts();
-}
+  <script>
+    const API_BASE = ""; // gol = același domeniu (Vercel)
 
-loadPosts();
-</script>
+    let token = localStorage.getItem("token") || null;
+    if (token) {
+      document.getElementById("post-area").style.display = "block";
+    }
 
+    async function register() {
+      const email = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-pass").value.trim();
+      const msg = document.getElementById("reg-msg");
+      msg.textContent = "";
+
+      if (!email || !password) {
+        msg.textContent = "Completează email și parolă.";
+        msg.className = "error";
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + "/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          msg.textContent = "Cont creat cu succes. Acum fă login.";
+          msg.className = "success";
+        } else {
+          msg.textContent = data.error || "Eroare la înregistrare.";
+          msg.className = "error";
+        }
+      } catch {
+        msg.textContent = "Eroare de rețea.";
+        msg.className = "error";
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById("log-email").value.trim();
+      const password = document.getElementById("log-pass").value.trim();
+      const msg = document.getElementById("log-msg");
+      msg.textContent = "";
+
+      if (!email || !password) {
+        msg.textContent = "Completează email și parolă.";
+        msg.className = "error";
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + "/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success && data.token) {
+          token = data.token;
+          localStorage.setItem("token", token);
+          msg.textContent = "Autentificat cu succes.";
+          msg.className = "success";
+          document.getElementById("post-area").style.display = "block";
+        } else {
+          msg.textContent = data.error || "Eroare la login.";
+          msg.className = "error";
+        }
+      } catch {
+        msg.textContent = "Eroare de rețea.";
+        msg.className = "error";
+      }
+    }
+
+    async function createPost() {
+      const content = document.getElementById("post-content").value.trim();
+      const msg = document.getElementById("post-msg");
+      msg.textContent = "";
+
+      if (!token) {
+        msg.textContent = "Trebuie să fii logat.";
+        msg.className = "error";
+        return;
+      }
+      if (!content) {
+        msg.textContent = "Scrie ceva înainte să postezi.";
+        msg.className = "error";
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + "/post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.success) {
+          msg.textContent = "Postare publicată.";
+          msg.className = "success";
+          document.getElementById("post-content").value = "";
+          loadPosts();
+        } else {
+          msg.textContent = data.error || "Eroare la postare.";
+          msg.className = "error";
+        }
+      } catch {
+        msg.textContent = "Eroare de rețea.";
+        msg.className = "error";
+      }
+    }
+
+    async function loadPosts() {
+      const container = document.getElementById("posts");
+      container.innerHTML = "Se încarcă...";
+
+      try {
+        const res = await fetch(API_BASE + "/posts");
+        const data = await res.json();
+        if (!Array.isArray(data)) {
+          container.innerHTML = "Nu s-au putut încărca postările.";
+          return;
+        }
+        if (data.length === 0) {
+          container.innerHTML = "Nu există postări încă.";
+          return;
+        }
+        container.innerHTML = "";
+        data.forEach(p => {
+          const div = document.createElement("div");
+          div.className = "post";
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = `${p.email} • ${new Date(p.created_at).toLocaleString()}`;
+          const content = document.createElement("div");
+          content.textContent = p.content;
+          div.appendChild(meta);
+          div.appendChild(content);
+          container.appendChild(div);
+        });
+      } catch {
+        container.innerHTML = "Eroare la încărcarea postărilor.";
+      }
+    }
+
+    loadPosts();
+  </script>
 </body>
 </html>
+
