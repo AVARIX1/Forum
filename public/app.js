@@ -1,20 +1,21 @@
 // === CONFIG ===
-const API = ""; // gol = același domeniu (Vercel)
+const API = ""; // lasă gol dacă frontend-ul e servit de același domeniu ca backend-ul
 
 // === STATE AUTH ===
 let token = localStorage.getItem("token") || null;
 let email = localStorage.getItem("email") || null;
 
-// === STATE PROFIL (LOCAL) ===
+// === STATE PROFIL (LOCAL + SERVER) ===
 let profileName = localStorage.getItem("profileName") || "Guest";
 let profileBio = localStorage.getItem("profileBio") || "";
+let avatarUrl = localStorage.getItem("avatarUrl") || "";
 
 // === STATE TOPICURI ===
-let allTopics = [];      // din backend
-let filteredTopics = []; // după search
+let allTopics = [];
+let filteredTopics = [];
 let currentSearch = "";
-let currentTopic = null; // topic selectat
-let localComments = {};  // comentarii doar local: { topicId: [ {text, imageUrl, time} ] }
+let currentTopic = null;
+let currentTopicMessages = [];
 
 // === UTILS ===
 function firstLetter(str) {
@@ -30,19 +31,23 @@ function detectTag(text) {
   return "General";
 }
 
+function authHeaders() {
+  return token
+    ? { Authorization: "Bearer " + token }
+    : {};
+}
+
 // === UI AUTH ===
 function updateAuthUI() {
   const btnLogin = document.getElementById("btn-login");
   const btnRegister = document.getElementById("btn-register");
   const userInfo = document.getElementById("user-info");
-  const userEmailTop = document.getElementById("user-email-top");
   const profileEmail = document.getElementById("profile-email");
 
   if (token && email) {
     btnLogin.style.display = "none";
     btnRegister.style.display = "none";
     userInfo.style.display = "flex";
-    userEmailTop.textContent = email;
     profileEmail.textContent = email;
   } else {
     btnLogin.style.display = "inline-flex";
@@ -52,10 +57,26 @@ function updateAuthUI() {
   }
 }
 
+function updateAvatarUI() {
+  const circle = document.getElementById("avatar-circle");
+  const letter = document.getElementById("avatar-letter");
+  const img = document.getElementById("avatar-image");
+
+  if (avatarUrl) {
+    img.src = avatarUrl;
+    img.style.display = "block";
+    letter.style.display = "none";
+  } else {
+    img.style.display = "none";
+    letter.style.display = "block";
+    letter.textContent = firstLetter(profileName === "Guest" ? "G" : profileName);
+  }
+}
+
 function updateProfileUI() {
   document.getElementById("profile-name").textContent = profileName;
   document.getElementById("profile-bio").textContent = profileBio || "";
-  document.getElementById("avatar-circle").textContent = firstLetter(profileName === "Guest" ? "G" : profileName);
+  updateAvatarUI();
 }
 
 updateAuthUI();
@@ -77,6 +98,15 @@ function closeModal(id) {
 document.getElementById("btn-login").onclick = () => openModal("login-modal");
 document.getElementById("btn-register").onclick = () => openModal("register-modal");
 document.getElementById("btn-logout").onclick = logout;
+document.getElementById("btn-settings").onclick = () => {
+  if (!token) {
+    alert("Trebuie să fii logat pentru setări.");
+    return;
+  }
+  document.getElementById("prof-name").value = profileName === "Guest" ? "" : profileName;
+  document.getElementById("prof-bio").value = profileBio;
+  openModal("profile-modal");
+};
 
 // modale
 document.getElementById("btn-login-submit").onclick = login;
@@ -91,6 +121,7 @@ document.getElementById("profile-edit-btn").onclick = () => {
   openModal("profile-modal");
 };
 document.getElementById("btn-profile-save").onclick = saveProfile;
+document.getElementById("btn-avatar-upload").onclick = uploadAvatar;
 
 document.getElementById("btn-new-topic").onclick = () => {
   if (!token) {
@@ -100,6 +131,7 @@ document.getElementById("btn-new-topic").onclick = () => {
   document.getElementById("topic-title-input").value = "";
   document.getElementById("topic-body-input").value = "";
   document.getElementById("topic-image-url-input").value = "";
+  document.getElementById("topic-image-file-input").value = "";
   openModal("topic-modal");
 };
 document.getElementById("btn-topic-save").onclick = createTopic;
@@ -135,7 +167,7 @@ async function register() {
     const data = await res.json();
     if (data.success) {
       msg.style.color = "#4ade80";
-      msg.textContent = "Cont creat. Acum poți face login.";
+      msg.textContent = "Cont creat. Verifică emailul pentru confirmare.";
     } else {
       msg.textContent = data.error || "Eroare la înregistrare.";
     }
@@ -168,10 +200,20 @@ async function login() {
     if (data.success && data.token) {
       token = data.token;
       email = emailVal;
+      profileName = data.display_name || "Guest";
+      profileBio = data.bio || "";
+      avatarUrl = data.avatar_url || "";
+
       localStorage.setItem("token", token);
       localStorage.setItem("email", email);
+      localStorage.setItem("profileName", profileName);
+      localStorage.setItem("profileBio", profileBio);
+      localStorage.setItem("avatarUrl", avatarUrl);
+
       closeModal("login-modal");
       updateAuthUI();
+      updateProfileUI();
+      showTopicsView();
       loadTopics();
     } else {
       msg.textContent = data.error || "Eroare la login.";
@@ -185,14 +227,21 @@ async function login() {
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("email");
+  localStorage.removeItem("profileName");
+  localStorage.removeItem("profileBio");
+  localStorage.removeItem("avatarUrl");
   token = null;
   email = null;
+  profileName = "Guest";
+  profileBio = "";
+  avatarUrl = "";
   updateAuthUI();
+  updateProfileUI();
   showTopicsView();
   loadTopics();
 }
 
-// === PROFIL LOCAL ===
+// === PROFIL LOCAL + SERVER (doar nume/bio local, avatar pe server) ===
 function saveProfile() {
   const nameVal = document.getElementById("prof-name").value.trim();
   const bioVal = document.getElementById("prof-bio").value.trim();
@@ -211,12 +260,54 @@ function saveProfile() {
   setTimeout(() => closeModal("profile-modal"), 700);
 }
 
+// === UPLOAD AVATAR ===
+async function uploadAvatar() {
+  const fileInput = document.getElementById("avatar-file");
+  const msg = document.getElementById("prof-msg");
+
+  msg.style.color = "#f97373";
+  msg.textContent = "";
+
+  if (!token) {
+    msg.textContent = "Trebuie să fii logat.";
+    return;
+  }
+
+  if (!fileInput.files || !fileInput.files[0]) {
+    msg.textContent = "Alege un fișier.";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("avatar", fileInput.files[0]);
+
+  try {
+    const res = await fetch(API + "/upload/avatar", {
+      method: "POST",
+      headers: authHeaders(),
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success && data.avatar_url) {
+      avatarUrl = data.avatar_url;
+      localStorage.setItem("avatarUrl", avatarUrl);
+      updateAvatarUI();
+      msg.style.color = "#4ade80";
+      msg.textContent = "Avatar actualizat.";
+    } else {
+      msg.textContent = data.error || "Eroare la upload avatar.";
+    }
+  } catch {
+    msg.textContent = "Eroare de rețea.";
+  }
+}
+
 // === CREARE TOPIC ===
-// content = "TITLE||BODY||IMAGE_URL"
 async function createTopic() {
   const title = document.getElementById("topic-title-input").value.trim();
   const body = document.getElementById("topic-body-input").value.trim();
-  const imageUrl = document.getElementById("topic-image-url-input").value.trim();
+  const imageUrlInput = document.getElementById("topic-image-url-input").value.trim();
+  const fileInput = document.getElementById("topic-image-file-input");
   const msg = document.getElementById("topic-msg");
 
   msg.style.color = "#f97373";
@@ -231,16 +322,46 @@ async function createTopic() {
     return;
   }
 
-  const packed = `${title}||${body}||${imageUrl}`;
+  let finalImageUrl = imageUrlInput;
+
+  // dacă are fișier, îl urcăm
+  if (fileInput.files && fileInput.files[0]) {
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+    try {
+      const resUp = await fetch(API + "/upload/image", {
+        method: "POST",
+        headers: authHeaders(),
+        body: formData
+      });
+      const dataUp = await resUp.json();
+      if (dataUp.success && dataUp.url) {
+        finalImageUrl = dataUp.url;
+      } else {
+        msg.textContent = dataUp.error || "Eroare la upload imagine.";
+        return;
+      }
+    } catch {
+      msg.textContent = "Eroare de rețea la upload imagine.";
+      return;
+    }
+  }
+
+  const tag = detectTag(title + " " + body);
 
   try {
-    const res = await fetch(API + "/post", {
+    const res = await fetch(API + "/topics", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
+        ...authHeaders()
       },
-      body: JSON.stringify({ content: packed })
+      body: JSON.stringify({
+        title,
+        body,
+        image_url: finalImageUrl,
+        tag
+      })
     });
     const data = await res.json();
     if (data.success) {
@@ -264,7 +385,7 @@ async function loadTopics() {
   container.innerHTML = "<div style='font-size:14px;color:#9ca3af;'>Se încarcă...</div>";
 
   try {
-    const res = await fetch(API + "/posts");
+    const res = await fetch(API + "/topics");
     const data = await res.json();
 
     if (!Array.isArray(data)) {
@@ -272,30 +393,16 @@ async function loadTopics() {
       return;
     }
 
-    allTopics = data.map(p => {
-      let title = "Topic";
-      let body = p.content || "";
-      let imageUrl = "";
-
-      if (typeof p.content === "string" && p.content.includes("||")) {
-        const parts = p.content.split("||");
-        title = parts[0] || "Topic";
-        body = parts[1] || "";
-        imageUrl = parts[2] || "";
-      }
-
-      const tag = detectTag(title + " " + body);
-
-      return {
-        id: p.id,
-        email: p.email,
-        created_at: p.created_at,
-        title,
-        body,
-        imageUrl,
-        tag
-      };
-    });
+    allTopics = data.map(t => ({
+      id: t.id,
+      title: t.title,
+      body: t.body,
+      imageUrl: t.image_url || "",
+      tag: t.tag || detectTag(t.title + " " + t.body),
+      created_at: t.created_at,
+      display_name: t.display_name || "Member",
+      avatar_url: t.avatar_url || ""
+    }));
 
     applyFilters();
   } catch {
@@ -326,11 +433,21 @@ function applyFilters() {
     const avatar = document.createElement("div");
     avatar.className = "topic-avatar";
 
-    let displayName = "Member";
-    if (email && t.email === email) {
-      displayName = profileName || "Member";
+    const avatarImg = document.createElement("img");
+    const avatarSpan = document.createElement("span");
+
+    if (t.avatar_url) {
+      avatarImg.src = t.avatar_url;
+      avatarImg.style.display = "block";
+      avatarSpan.style.display = "none";
+    } else {
+      avatarImg.style.display = "none";
+      avatarSpan.style.display = "block";
+      avatarSpan.textContent = firstLetter(t.display_name || "M");
     }
-    avatar.textContent = firstLetter(displayName);
+
+    avatar.appendChild(avatarImg);
+    avatar.appendChild(avatarSpan);
 
     const main = document.createElement("div");
     main.className = "topic-main";
@@ -383,11 +500,12 @@ function showTopicView() {
 
 document.getElementById("btn-back").onclick = () => {
   currentTopic = null;
+  currentTopicMessages = [];
   showTopicsView();
 };
 
 // === DESCHIDERE TOPIC ===
-function openTopic(topic) {
+async function openTopic(topic) {
   currentTopic = topic;
   showTopicView();
 
@@ -404,15 +522,42 @@ function openTopic(topic) {
     img.style.display = "none";
   }
 
+  await loadTopicMessages(topic.id);
   renderChat();
 }
 
-// === CHAT LOCAL (comentarii doar în browser) ===
+// === ÎNCĂRCARE MESAJ TOPIC ===
+async function loadTopicMessages(topicId) {
+  const container = document.getElementById("topic-chat");
+  container.innerHTML = "<div style='font-size:13px;color:#9ca3af;'>Se încarcă mesajele...</div>";
+
+  try {
+    const res = await fetch(API + `/topics/${topicId}/messages`);
+    const data = await res.json();
+    if (!Array.isArray(data)) {
+      currentTopicMessages = [];
+    } else {
+      currentTopicMessages = data.map(m => ({
+        id: m.id,
+        body: m.body,
+        image_url: m.image_url || "",
+        created_at: m.created_at,
+        display_name: m.display_name || "Member",
+        avatar_url: m.avatar_url || ""
+      }));
+    }
+  } catch {
+    currentTopicMessages = [];
+  }
+}
+
+// === TRIMITERE MESAJ ÎN TOPIC ===
 document.getElementById("btn-chat-send").onclick = sendChat;
 
-function sendChat() {
+async function sendChat() {
   const text = document.getElementById("chat-text-input").value.trim();
-  const imageUrl = document.getElementById("chat-image-url").value.trim();
+  const imageUrlInput = document.getElementById("chat-image-url").value.trim();
+  const fileInput = document.getElementById("chat-image-file");
   const msg = document.getElementById("chat-msg");
 
   msg.style.color = "#f97373";
@@ -426,74 +571,118 @@ function sendChat() {
     msg.textContent = "Niciun topic selectat.";
     return;
   }
-  if (!text && !imageUrl) {
+  if (!text && !imageUrlInput && !(fileInput.files && fileInput.files[0])) {
     msg.textContent = "Scrie ceva sau adaugă o imagine.";
     return;
   }
 
-  const topicId = currentTopic.id || "local-" + currentTopic.created_at;
-  if (!localComments[topicId]) localComments[topicId] = [];
+  let finalImageUrl = imageUrlInput;
 
-  localComments[topicId].push({
-    text,
-    imageUrl,
-    time: new Date().toISOString(),
-    authorEmail: email
-  });
+  // upload fișier dacă există
+  if (fileInput.files && fileInput.files[0]) {
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+    try {
+      const resUp = await fetch(API + "/upload/image", {
+        method: "POST",
+        headers: authHeaders(),
+        body: formData
+      });
+      const dataUp = await resUp.json();
+      if (dataUp.success && dataUp.url) {
+        finalImageUrl = dataUp.url;
+      } else {
+        msg.textContent = dataUp.error || "Eroare la upload imagine.";
+        return;
+      }
+    } catch {
+      msg.textContent = "Eroare de rețea la upload imagine.";
+      return;
+    }
+  }
 
-  document.getElementById("chat-text-input").value = "";
-  document.getElementById("chat-image-url").value = "";
-  msg.style.color = "#4ade80";
-  msg.textContent = "Mesaj adăugat (local).";
-
-  renderChat();
+  try {
+    const res = await fetch(API + `/topics/${currentTopic.id}/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders()
+      },
+      body: JSON.stringify({
+        body: text,
+        image_url: finalImageUrl
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById("chat-text-input").value = "";
+      document.getElementById("chat-image-url").value = "";
+      document.getElementById("chat-image-file").value = "";
+      msg.style.color = "#4ade80";
+      msg.textContent = "Mesaj trimis.";
+      await loadTopicMessages(currentTopic.id);
+      renderChat();
+    } else {
+      msg.textContent = data.error || "Eroare la trimiterea mesajului.";
+    }
+  } catch {
+    msg.textContent = "Eroare de rețea.";
+  }
 }
 
+// === RENDER CHAT ===
 function renderChat() {
   const container = document.getElementById("topic-chat");
   container.innerHTML = "";
 
   if (!currentTopic) return;
 
-  const topicId = currentTopic.id || "local-" + currentTopic.created_at;
-  const comments = localComments[topicId] || [];
-
-  if (comments.length === 0) {
+  if (currentTopicMessages.length === 0) {
     container.innerHTML = "<div style='font-size:13px;color:#9ca3af;'>Nu există încă răspunsuri în acest topic.</div>";
     return;
   }
 
-  comments.forEach(c => {
+  currentTopicMessages.forEach(c => {
     const row = document.createElement("div");
     row.className = "chat-msg";
 
     const avatar = document.createElement("div");
     avatar.className = "chat-avatar";
 
-    let displayName = "Member";
-    if (email && c.authorEmail === email) {
-      displayName = profileName || "Member";
+    const avatarImg = document.createElement("img");
+    const avatarSpan = document.createElement("span");
+
+    if (c.avatar_url) {
+      avatarImg.src = c.avatar_url;
+      avatarImg.style.display = "block";
+      avatarSpan.style.display = "none";
+    } else {
+      avatarImg.style.display = "none";
+      avatarSpan.style.display = "block";
+      avatarSpan.textContent = firstLetter(c.display_name || "M");
     }
-    avatar.textContent = firstLetter(displayName);
+
+    avatar.appendChild(avatarImg);
+    avatar.appendChild(avatarSpan);
 
     const bubble = document.createElement("div");
     bubble.className = "chat-bubble";
 
     const nameTime = document.createElement("div");
     nameTime.className = "chat-name-time";
-    nameTime.textContent = `${displayName} • ${new Date(c.time).toLocaleString()}`;
+    nameTime.textContent = `${c.display_name || "Member"} • ${new Date(c.created_at).toLocaleString()}`;
 
     const text = document.createElement("div");
     text.className = "chat-text";
-    text.textContent = c.text;
+    text.textContent = c.body;
 
     bubble.appendChild(nameTime);
     bubble.appendChild(text);
 
-    if (c.imageUrl) {
+    if (c.image_url) {
       const img = document.createElement("img");
       img.className = "chat-image";
-      img.src = c.imageUrl;
+      img.src = c.image_url;
       bubble.appendChild(img);
     }
 
