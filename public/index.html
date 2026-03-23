@@ -148,13 +148,13 @@
       width: 100%;
     }
 
-    #categories {
+    #news-box {
       background: #111827;
       border-radius: 14px;
       padding: 12px;
     }
 
-    #categories h3 {
+    #news-box h3 {
       margin: 0 0 8px 0;
       font-size: 14px;
       color: #9ca3af;
@@ -162,31 +162,16 @@
       letter-spacing: 1px;
     }
 
-    #categories ul {
+    #news-list {
       list-style: none;
       padding: 0;
       margin: 0;
+      font-size: 13px;
+      color: #d1d5db;
     }
 
-    #categories li {
-      padding: 10px 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      color: #e5e7eb;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    #categories li span {
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    #categories li:hover,
-    #categories li.active {
-      background: #1f2937;
+    #news-list li {
+      margin-bottom: 6px;
     }
 
     /* CONȚINUT */
@@ -199,7 +184,7 @@
       gap: 16px;
     }
 
-    #search-bar {
+    #top-bar {
       display: flex;
       gap: 10px;
       align-items: center;
@@ -220,123 +205,237 @@
 
     #search-input::placeholder { color: #6b7280; }
 
-    #post-box {
+    /* VIEWS */
+    #view-topics,
+    #view-topic {
       background: #111827;
       border-radius: 14px;
       padding: 14px;
+      min-height: 0;
       display: none;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    #topic-title {
-      width: 100%;
-      padding: 9px 10px;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 14px;
-    }
-
-    #topic-category {
-      width: 100%;
-      padding: 9px 10px;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 14px;
-    }
-
-    #post-content {
-      width: 100%;
-      min-height: 80px;
-      max-height: 200px;
-      resize: vertical;
-      background: #020617;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      padding: 10px;
-      color: #e5e7eb;
-      font-size: 14px;
-    }
-
-    #post-msg {
-      font-size: 13px;
-      min-height: 16px;
-    }
-
-    #posts {
-      display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .post {
-      background: #111827;
-      border-radius: 14px;
-      padding: 14px;
-      border: 1px solid #1f2937;
-      transition: 0.15s;
+    #view-topics { display: flex; }
+
+    #topics-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .post:hover {
+    .topic-card {
+      background: #020617;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #1f2937;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      gap: 10px;
+    }
+
+    .topic-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     }
 
-    .post-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .post-avatar {
-      width: 34px;
-      height: 34px;
+    .topic-avatar {
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: #1f2937;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       color: #e5e7eb;
+      flex-shrink: 0;
     }
 
-    .post-user {
-      font-size: 14px;
-      font-weight: 600;
+    .topic-main {
+      flex: 1;
+      min-width: 0;
     }
 
-    .post-meta {
-      font-size: 11px;
-      color: #9ca3af;
-    }
-
-    .post-title {
-      font-size: 15px;
-      font-weight: 600;
+    .topic-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 4px;
     }
 
-    .post-category-tag {
-      display: inline-block;
+    .topic-title {
+      font-size: 15px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topic-tag {
       font-size: 11px;
       padding: 2px 8px;
       border-radius: 999px;
       background: #1f2937;
       color: #9ca3af;
-      margin-left: 6px;
+      flex-shrink: 0;
     }
 
-    .post-content {
+    .topic-meta {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .topic-preview {
+      font-size: 13px;
+      color: #d1d5db;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* TOPIC VIEW (chat style) */
+    #topic-header {
+      border-bottom: 1px solid #1f2937;
+      padding-bottom: 8px;
+    }
+
+    #topic-title-full {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    #topic-tag-full {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #1f2937;
+      color: #9ca3af;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    #topic-meta-full {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    #topic-body-full {
+      margin-top: 10px;
       font-size: 14px;
       color: #e5e7eb;
       white-space: pre-wrap;
       word-wrap: break-word;
+    }
+
+    #topic-image {
+      margin-top: 10px;
+      max-width: 100%;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      display: none;
+    }
+
+    #topic-chat {
+      margin-top: 12px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .chat-msg {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .chat-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .chat-bubble {
+      background: #020617;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1px solid #1f2937;
+      max-width: 100%;
+    }
+
+    .chat-name-time {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 2px;
+    }
+
+    .chat-text {
+      font-size: 14px;
+      color: #e5e7eb;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .chat-image {
+      margin-top: 6px;
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+    }
+
+    #chat-form {
+      margin-top: 10px;
+      border-top: 1px solid #1f2937;
+      padding-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #chat-text-input {
+      width: 100%;
+      min-height: 60px;
+      max-height: 160px;
+      resize: vertical;
+      background: #020617;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      padding: 8px;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    #chat-image-url {
+      width: 100%;
+      padding: 7px 8px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+
+    #chat-msg {
+      font-size: 13px;
+      min-height: 16px;
     }
 
     /* MODALE */
@@ -449,41 +548,51 @@
         <button id="profile-edit-btn" class="btn btn-ghost">Editează profilul</button>
       </div>
 
-      <div id="categories">
-        <h3>Categorii</h3>
-        <ul id="category-list">
-          <li data-cat="Toate" class="active">Toate <span>•</span></li>
-          <li data-cat="General">General <span>•</span></li>
-          <li data-cat="Gaming">Gaming <span>•</span></li>
-          <li data-cat="Programare">Programare <span>•</span></li>
-          <li data-cat="Întrebări">Întrebări <span>•</span></li>
-          <li data-cat="Off-topic">Off-topic <span>•</span></li>
+      <div id="news-box">
+        <h3>Noutăți & update-uri</h3>
+        <ul id="news-list">
+          <li>• Sistem de topicuri cu vizualizare tip chat.</li>
+          <li>• Căutare inteligentă după titlu și conținut.</li>
+          <li>• Profil personalizat cu nume și bio.</li>
+          <li>• Login persistent pentru utilizatori.</li>
         </ul>
       </div>
     </aside>
 
     <!-- CONȚINUT -->
     <main id="content">
-      <div id="search-bar">
-        <input id="search-input" type="text" placeholder="Caută topic după titlu, conținut sau categorie...">
+      <div id="top-bar">
+        <input id="search-input" type="text" placeholder="Caută topic după titlu, conținut sau link...">
         <button id="search-clear" class="btn btn-ghost">Reset</button>
+        <button id="btn-new-topic" class="btn btn-primary">Topic nou</button>
       </div>
 
-      <div id="post-box">
-        <input id="topic-title" type="text" placeholder="Titlul topicului (ex: Cel mai tare joc)">
-        <select id="topic-category">
-          <option value="General">General</option>
-          <option value="Gaming">Gaming</option>
-          <option value="Programare">Programare</option>
-          <option value="Întrebări">Întrebări</option>
-          <option value="Off-topic">Off-topic</option>
-        </select>
-        <textarea id="post-content" placeholder="Descrie topicul / discuția..."></textarea>
-        <button id="btn-post" class="btn btn-primary">Publică topic</button>
-        <p id="post-msg"></p>
-      </div>
+      <!-- LISTĂ TOPICURI -->
+      <section id="view-topics">
+        <div id="topics-list"></div>
+      </section>
 
-      <div id="posts"></div>
+      <!-- VEDERE TOPIC (chat style) -->
+      <section id="view-topic">
+        <button id="btn-back" class="btn btn-ghost">← Înapoi la topicuri</button>
+
+        <div id="topic-header">
+          <div id="topic-title-full"></div>
+          <div id="topic-tag-full"></div>
+          <div id="topic-meta-full"></div>
+          <div id="topic-body-full"></div>
+          <img id="topic-image" alt="Imagine topic">
+        </div>
+
+        <div id="topic-chat"></div>
+
+        <div id="chat-form">
+          <textarea id="chat-text-input" placeholder="Scrie un răspuns în acest topic..."></textarea>
+          <input id="chat-image-url" type="text" placeholder="Link imagine (opțional)">
+          <button id="btn-chat-send" class="btn btn-primary">Trimite</button>
+          <p id="chat-msg"></p>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -523,6 +632,20 @@
     </div>
   </div>
 
+  <!-- NEW TOPIC MODAL -->
+  <div class="modal" id="topic-modal">
+    <div class="modal-content">
+      <span class="close" data-close="topic-modal">×</span>
+      <h2>Topic nou</h2>
+      <input id="topic-title-input" type="text" placeholder="Titlul topicului">
+      <textarea id="topic-body-input" placeholder="Descrierea topicului..."></textarea>
+      <input id="topic-image-url-input" type="text" placeholder="Link imagine (opțional)">
+      <button id="btn-topic-save" class="btn btn-primary">Publică topic</button>
+      <p id="topic-msg"></p>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
+
