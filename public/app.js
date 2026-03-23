@@ -1,5 +1,5 @@
 // === CONFIG ===
-const API = ""; // lasă gol dacă frontend-ul e servit de același domeniu ca backend-ul
+const API = "forum-five-chi.vercel.app"; // lasă gol dacă frontend-ul e servit de același domeniu ca backend-ul
 
 // === STATE AUTH ===
 let token = localStorage.getItem("token") || null;
