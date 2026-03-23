@@ -3,10 +3,13 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Pool } = require("pg");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Servește fișierele statice din folderul public
 app.use(express.static("public"));
 
 const pool = new Pool({
@@ -14,7 +17,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Create tables if not exist
+// Creează tabelele dacă nu există
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -80,7 +83,7 @@ app.post("/login", async (req, res) => {
   res.json({ success: true, token });
 });
 
-// AUTH MIDDLEWARE
+// AUTH middleware
 function auth(req, res, next) {
   const header = req.headers.authorization;
   if (!header) return res.json({ success: false, error: "No token" });
@@ -120,6 +123,11 @@ app.get("/posts", async (req, res) => {
   res.json(result.rows);
 });
 
-// Vercel serverless export
+// HOME PAGE — trimite index.html când intri pe /
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Export pentru Vercel
 module.exports = app;
 
