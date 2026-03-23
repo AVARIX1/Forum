@@ -2,13 +2,11 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8">
-  <title>Forum Profesional</title>
+  <title>Forum Inteligent</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -23,18 +21,18 @@
 
     /* NAVBAR */
     #navbar {
-      flex: 0 0 60px;
+      flex: 0 0 64px;
       background: #0b0b10;
       border-bottom: 1px solid #1f1f2b;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 18px;
       z-index: 10;
     }
 
     .logo {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 700;
       letter-spacing: 2px;
     }
@@ -42,12 +40,12 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .btn {
-      padding: 8px 14px;
-      border-radius: 6px;
+      padding: 9px 16px;
+      border-radius: 8px;
       border: none;
       cursor: pointer;
       font-weight: 600;
@@ -61,9 +59,7 @@
       color: #fff;
     }
 
-    .btn-primary:hover {
-      background: #2563eb;
-    }
+    .btn-primary:hover { background: #2563eb; }
 
     .btn-ghost {
       background: transparent;
@@ -71,9 +67,7 @@
       border: 1px solid #374151;
     }
 
-    .btn-ghost:hover {
-      background: #111827;
-    }
+    .btn-ghost:hover { background: #111827; }
 
     #user-info {
       display: flex;
@@ -90,7 +84,7 @@
       white-space: nowrap;
     }
 
-    /* LAYOUT PRINCIPAL */
+    /* LAYOUT */
     #layout {
       flex: 1;
       display: flex;
@@ -99,7 +93,7 @@
 
     /* SIDEBAR */
     #sidebar {
-      flex: 0 0 280px;
+      flex: 0 0 290px;
       background: #0b0b10;
       border-right: 1px solid #1f1f2b;
       padding: 16px;
@@ -111,25 +105,28 @@
 
     #profile-box {
       background: #111827;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
       text-align: center;
     }
 
-    #profile-pic {
+    #avatar-circle {
       width: 96px;
       height: 96px;
       border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #1f2937;
-      background: #020617;
-      display: block;
+      background: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 700;
       margin: 0 auto 10px auto;
+      color: #e5e7eb;
     }
 
     #profile-name {
       font-weight: 600;
-      font-size: 16px;
+      font-size: 17px;
       margin-bottom: 4px;
     }
 
@@ -153,7 +150,7 @@
 
     #categories {
       background: #111827;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 12px;
     }
 
@@ -172,8 +169,8 @@
     }
 
     #categories li {
-      padding: 8px 10px;
-      border-radius: 8px;
+      padding: 10px 10px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 14px;
       color: #e5e7eb;
@@ -192,7 +189,7 @@
       background: #1f2937;
     }
 
-    /* CONȚINUT PRINCIPAL */
+    /* CONȚINUT */
     #content {
       flex: 1;
       padding: 16px 20px;
@@ -202,13 +199,54 @@
       gap: 16px;
     }
 
+    #search-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #111827;
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    #search-input {
+      flex: 1;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    #search-input::placeholder { color: #6b7280; }
+
     #post-box {
       background: #111827;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 14px;
       display: none;
       flex-direction: column;
       gap: 8px;
+    }
+
+    #topic-title {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    #topic-category {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
     }
 
     #post-content {
@@ -217,7 +255,7 @@
       max-height: 200px;
       resize: vertical;
       background: #020617;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #1f2937;
       padding: 10px;
       color: #e5e7eb;
@@ -226,7 +264,6 @@
 
     #post-msg {
       font-size: 13px;
-      color: #f97373;
       min-height: 16px;
     }
 
@@ -238,7 +275,7 @@
 
     .post {
       background: #111827;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 14px;
       border: 1px solid #1f2937;
       transition: 0.15s;
@@ -257,12 +294,16 @@
     }
 
     .post-avatar {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: #020617;
-      border: 1px solid #1f2937;
-      object-fit: cover;
+      background: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #e5e7eb;
     }
 
     .post-user {
@@ -273,6 +314,22 @@
     .post-meta {
       font-size: 11px;
       color: #9ca3af;
+    }
+
+    .post-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .post-category-tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #1f2937;
+      color: #9ca3af;
+      margin-left: 6px;
     }
 
     .post-content {
@@ -295,7 +352,7 @@
 
     .modal-content {
       background: #020617;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 20px;
       width: 90%;
       max-width: 380px;
@@ -319,7 +376,7 @@
       width: 100%;
       padding: 9px;
       margin: 6px 0;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #1f2937;
       background: #020617;
       color: #e5e7eb;
@@ -327,9 +384,7 @@
       resize: vertical;
     }
 
-    .modal-content textarea {
-      min-height: 60px;
-    }
+    .modal-content textarea { min-height: 60px; }
 
     .modal-content button {
       margin-top: 8px;
@@ -351,81 +406,80 @@
       color: #9ca3af;
     }
 
-    .close:hover {
-      color: #e5e7eb;
-    }
+    .close:hover { color: #e5e7eb; }
 
     /* RESPONSIVE */
     @media (max-width: 900px) {
-      #sidebar {
-        display: none;
-      }
-      #layout {
-        flex-direction: column;
-      }
-      #content {
-        padding: 12px;
-      }
+      #sidebar { display: none; }
+      #layout { flex-direction: column; }
+      #content { padding: 12px; }
     }
 
     @media (max-width: 600px) {
-      #navbar {
-        padding: 0 10px;
-      }
-      .logo {
-        font-size: 18px;
-      }
-      #user-email-top {
-        max-width: 120px;
-      }
+      #navbar { padding: 0 10px; }
+      .logo { font-size: 20px; }
+      #user-email-top { max-width: 120px; }
     }
   </style>
 </head>
 
 <body>
-
   <!-- NAVBAR -->
   <nav id="navbar">
     <div class="logo">FORUM</div>
     <div class="nav-right">
-      <button id="btn-login" class="btn btn-ghost" onclick="openLogin()">Login</button>
-      <button id="btn-register" class="btn btn-primary" onclick="openRegister()">Register</button>
+      <button id="btn-login" class="btn btn-ghost">Login</button>
+      <button id="btn-register" class="btn btn-primary">Register</button>
       <div id="user-info" style="display:none;">
         <span id="user-email-top"></span>
-        <button class="btn btn-ghost" onclick="logout()">Logout</button>
+        <button id="btn-logout" class="btn btn-ghost">Logout</button>
       </div>
     </div>
   </nav>
 
-  <!-- LAYOUT PRINCIPAL -->
+  <!-- LAYOUT -->
   <div id="layout">
     <!-- SIDEBAR -->
     <aside id="sidebar">
       <div id="profile-box">
-        <img id="profile-pic" src="https://i.imgur.com/1Q9Z1Zm.png" alt="Profil">
+        <div id="avatar-circle">G</div>
         <div id="profile-name">Guest</div>
         <div id="profile-email"></div>
         <div id="profile-bio"></div>
-        <button id="profile-edit-btn" class="btn btn-ghost" onclick="openProfile()">Editează profilul</button>
+        <button id="profile-edit-btn" class="btn btn-ghost">Editează profilul</button>
       </div>
 
       <div id="categories">
         <h3>Categorii</h3>
-        <ul>
-          <li class="active">General <span>#</span></li>
-          <li>Gaming <span>#</span></li>
-          <li>Programare <span>#</span></li>
-          <li>Întrebări <span>#</span></li>
-          <li>Off-topic <span>#</span></li>
+        <ul id="category-list">
+          <li data-cat="Toate" class="active">Toate <span>•</span></li>
+          <li data-cat="General">General <span>•</span></li>
+          <li data-cat="Gaming">Gaming <span>•</span></li>
+          <li data-cat="Programare">Programare <span>•</span></li>
+          <li data-cat="Întrebări">Întrebări <span>•</span></li>
+          <li data-cat="Off-topic">Off-topic <span>•</span></li>
         </ul>
       </div>
     </aside>
 
     <!-- CONȚINUT -->
     <main id="content">
+      <div id="search-bar">
+        <input id="search-input" type="text" placeholder="Caută topic după titlu, conținut sau categorie...">
+        <button id="search-clear" class="btn btn-ghost">Reset</button>
+      </div>
+
       <div id="post-box">
-        <textarea id="post-content" placeholder="Scrie o postare..."></textarea>
-        <button class="btn btn-primary" onclick="createPost()">Publică</button>
+        <input id="topic-title" type="text" placeholder="Titlul topicului (ex: Cel mai tare joc)">
+        <select id="topic-category">
+          <option value="General">General</option>
+          <option value="Gaming">Gaming</option>
+          <option value="Programare">Programare</option>
+          <option value="Întrebări">Întrebări</option>
+          <option value="Off-topic">Off-topic</option>
+        </select>
+        <textarea id="post-content" placeholder="Descrie topicul / discuția..."></textarea>
+        <button id="btn-post" class="btn btn-primary">Publică topic</button>
         <p id="post-msg"></p>
       </div>
 
@@ -436,11 +490,11 @@
   <!-- LOGIN MODAL -->
   <div class="modal" id="login-modal">
     <div class="modal-content">
-      <span class="close" onclick="closeLogin()">×</span>
+      <span class="close" data-close="login-modal">×</span>
       <h2>Login</h2>
       <input id="log-email" type="email" placeholder="Email">
       <input id="log-pass" type="password" placeholder="Parolă">
-      <button class="btn btn-primary" onclick="login()">Intră</button>
+      <button id="btn-login-submit" class="btn btn-primary">Intră</button>
       <p id="log-msg"></p>
     </div>
   </div>
@@ -448,11 +502,11 @@
   <!-- REGISTER MODAL -->
   <div class="modal" id="register-modal">
     <div class="modal-content">
-      <span class="close" onclick="closeRegister()">×</span>
+      <span class="close" data-close="register-modal">×</span>
       <h2>Register</h2>
       <input id="reg-email" type="email" placeholder="Email">
       <input id="reg-pass" type="password" placeholder="Parolă">
-      <button class="btn btn-primary" onclick="register()">Creează cont</button>
+      <button id="btn-register-submit" class="btn btn-primary">Creează cont</button>
       <p id="reg-msg"></p>
     </div>
   </div>
@@ -460,306 +514,15 @@
   <!-- PROFILE MODAL -->
   <div class="modal" id="profile-modal">
     <div class="modal-content">
-      <span class="close" onclick="closeProfile()">×</span>
+      <span class="close" data-close="profile-modal">×</span>
       <h2>Profil</h2>
-      <input id="prof-name" type="text" placeholder="Nume afișat">
+      <input id="prof-name" type="text" placeholder="Nume afișat (nu email)">
       <textarea id="prof-bio" placeholder="Despre tine..."></textarea>
-      <label style="font-size:13px; color:#9ca3af;">Poză de profil (locală, nu se urcă pe server):</label>
-      <input id="prof-pic-input" type="file" accept="image/*">
-      <button class="btn btn-primary" onclick="saveProfile()">Salvează profilul</button>
+      <button id="btn-profile-save" class="btn btn-primary">Salvează profilul</button>
       <p id="prof-msg"></p>
     </div>
   </div>
 
-  <script>
-    // === CONFIG ===
-    const API = ""; // gol = același domeniu (Vercel)
-
-    // === STATE AUTH ===
-    let token = localStorage.getItem("token") || null;
-    let email = localStorage.getItem("email") || null;
-
-    // === STATE PROFIL (LOCAL) ===
-    let profileName = localStorage.getItem("profileName") || "Guest";
-    let profileBio = localStorage.getItem("profileBio") || "";
-    let profilePic = localStorage.getItem("profilePic") || "https://i.imgur.com/1Q9Z1Zm.png";
-
-    // === UI INIT ===
-    function updateAuthUI() {
-      const btnLogin = document.getElementById("btn-login");
-      const btnRegister = document.getElementById("btn-register");
-      const userInfo = document.getElementById("user-info");
-      const userEmailTop = document.getElementById("user-email-top");
-      const postBox = document.getElementById("post-box");
-      const profileEmail = document.getElementById("profile-email");
-
-      if (token && email) {
-        btnLogin.style.display = "none";
-        btnRegister.style.display = "none";
-        userInfo.style.display = "flex";
-        userEmailTop.textContent = email;
-        postBox.style.display = "flex";
-        profileEmail.textContent = email;
-      } else {
-        btnLogin.style.display = "inline-flex";
-        btnRegister.style.display = "inline-flex";
-        userInfo.style.display = "none";
-        postBox.style.display = "none";
-        profileEmail.textContent = "";
-      }
-    }
-
-    function updateProfileUI() {
-      document.getElementById("profile-name").textContent = profileName;
-      document.getElementById("profile-bio").textContent = profileBio || "";
-      document.getElementById("profile-pic").src = profilePic;
-    }
-
-    updateAuthUI();
-    updateProfileUI();
-
-    // === MODALE ===
-    function openLogin() {
-      document.getElementById("login-modal").style.display = "flex";
-    }
-    function closeLogin() {
-      document.getElementById("login-modal").style.display = "none";
-      document.getElementById("log-msg").textContent = "";
-    }
-
-    function openRegister() {
-      document.getElementById("register-modal").style.display = "flex";
-    }
-    function closeRegister() {
-      document.getElementById("register-modal").style.display = "none";
-      document.getElementById("reg-msg").textContent = "";
-    }
-
-    function openProfile() {
-      if (!token) {
-        alert("Trebuie să fii logat ca să îți editezi profilul.");
-        return;
-      }
-      document.getElementById("prof-name").value = profileName === "Guest" ? "" : profileName;
-      document.getElementById("prof-bio").value = profileBio;
-      document.getElementById("profile-modal").style.display = "flex";
-    }
-    function closeProfile() {
-      document.getElementById("profile-modal").style.display = "none";
-      document.getElementById("prof-msg").textContent = "";
-      document.getElementById("prof-pic-input").value = "";
-    }
-
-    // === REGISTER ===
-    async function register() {
-      const emailVal = document.getElementById("reg-email").value.trim();
-      const passVal = document.getElementById("reg-pass").value.trim();
-      const msg = document.getElementById("reg-msg");
-
-      msg.style.color = "#f97373";
-      msg.textContent = "";
-
-      if (!emailVal || !passVal) {
-        msg.textContent = "Completează email și parolă.";
-        return;
-      }
-
-      try {
-        const res = await fetch(API + "/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: emailVal, password: passVal })
-        });
-        const data = await res.json();
-        if (data.success) {
-          msg.style.color = "#4ade80";
-          msg.textContent = "Cont creat. Acum poți face login.";
-        } else {
-          msg.textContent = data.error || "Eroare la înregistrare.";
-        }
-      } catch {
-        msg.textContent = "Eroare de rețea.";
-      }
-    }
-
-    // === LOGIN ===
-    async function login() {
-      const emailVal = document.getElementById("log-email").value.trim();
-      const passVal = document.getElementById("log-pass").value.trim();
-      const msg = document.getElementById("log-msg");
-
-      msg.style.color = "#f97373";
-      msg.textContent = "";
-
-      if (!emailVal || !passVal) {
-        msg.textContent = "Completează email și parolă.";
-        return;
-      }
-
-      try {
-        const res = await fetch(API + "/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: emailVal, password: passVal })
-        });
-        const data = await res.json();
-        if (data.success && data.token) {
-          token = data.token;
-          email = emailVal;
-          localStorage.setItem("token", token);
-          localStorage.setItem("email", email);
-          closeLogin();
-          updateAuthUI();
-          loadPosts();
-        } else {
-          msg.textContent = data.error || "Eroare la login.";
-        }
-      } catch {
-        msg.textContent = "Eroare de rețea.";
-      }
-    }
-
-    // === LOGOUT ===
-    function logout() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("email");
-      token = null;
-      email = null;
-      updateAuthUI();
-      loadPosts();
-    }
-
-    // === PROFIL LOCAL ===
-    function saveProfile() {
-      const nameVal = document.getElementById("prof-name").value.trim();
-      const bioVal = document.getElementById("prof-bio").value.trim();
-      const fileInput = document.getElementById("prof-pic-input");
-      const msg = document.getElementById("prof-msg");
-
-      profileName = nameVal || "Guest";
-      profileBio = bioVal;
-
-      localStorage.setItem("profileName", profileName);
-      localStorage.setItem("profileBio", profileBio);
-
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          profilePic = e.target.result;
-          localStorage.setItem("profilePic", profilePic);
-          updateProfileUI();
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else {
-        updateProfileUI();
-      }
-
-      msg.style.color = "#4ade80";
-      msg.textContent = "Profil salvat local.";
-      setTimeout(closeProfile, 800);
-    }
-
-    // === POSTARE ===
-    async function createPost() {
-      const content = document.getElementById("post-content").value.trim();
-      const msg = document.getElementById("post-msg");
-
-      msg.style.color = "#f97373";
-      msg.textContent = "";
-
-      if (!token) {
-        msg.textContent = "Trebuie să fii logat.";
-        return;
-      }
-      if (!content) {
-        msg.textContent = "Scrie ceva înainte să postezi.";
-        return;
-      }
-
-      try {
-        const res = await fetch(API + "/post", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-          },
-          body: JSON.stringify({ content })
-        });
-        const data = await res.json();
-        if (data.success) {
-          msg.style.color = "#4ade80";
-          msg.textContent = "Postare publicată.";
-          document.getElementById("post-content").value = "";
-          loadPosts();
-        } else {
-          msg.textContent = data.error || "Eroare la postare.";
-        }
-      } catch {
-        msg.textContent = "Eroare de rețea.";
-      }
-    }
-
-    // === ÎNCĂRCARE POSTĂRI ===
-    async function loadPosts() {
-      const container = document.getElementById("posts");
-      container.innerHTML = "<div style='font-size:14px;color:#9ca3af;'>Se încarcă...</div>";
-
-      try {
-        const res = await fetch(API + "/posts");
-        const data = await res.json();
-
-        if (!Array.isArray(data)) {
-          container.innerHTML = "<div style='font-size:14px;color:#9ca3af;'>Nu s-au putut încărca postările.</div>";
-          return;
-        }
-
-        if (data.length === 0) {
-          container.innerHTML = "<div style='font-size:14px;color:#9ca3af;'>Nu există postări încă.</div>";
-          return;
-        }
-
-        container.innerHTML = "";
-        data.forEach(p => {
-          const div = document.createElement("div");
-          div.className = "post";
-
-          const header = document.createElement("div");
-          header.className = "post-header";
-
-          const avatar = document.createElement("img");
-          avatar.className = "post-avatar";
-          avatar.src = profilePic;
-
-          const info = document.createElement("div");
-          const user = document.createElement("div");
-          user.className = "post-user";
-          user.textContent = p.email;
-
-          const meta = document.createElement("div");
-          meta.className = "post-meta";
-          meta.textContent = new Date(p.created_at).toLocaleString();
-
-          info.appendChild(user);
-          info.appendChild(meta);
-
-          header.appendChild(avatar);
-          header.appendChild(info);
-
-          const content = document.createElement("div");
-          content.className = "post-content";
-          content.textContent = p.content;
-
-          div.appendChild(header);
-          div.appendChild(content);
-
-          container.appendChild(div);
-        });
-      } catch {
-        container.innerHTML = "<div style='font-size:14px;color:#9ca3af;'>Eroare la încărcarea postărilor.</div>";
-      }
-    }
-
-    loadPosts();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
