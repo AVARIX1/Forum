@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Postare</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <button onclick="history.back()">Înapoi</button>
+  <button onclick="logout()">Logout</button>
+
+  <div id="post"></div>
+
+  <h3>Comentarii</h3>
+  <div id="comments"></div>
+
+  <h3>Adaugă comentariu</h3>
+  <textarea id="commentText"></textarea>
+  <button onclick="addComment()">Trimite</button>
+</div>
+
+<script src="app.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const postId = params.get("id");
+
+async function loadPost() {
+  const data = await api(`/posts/${postId}`);
+
+  if (data.error) {
+    document.getElementById("post").innerHTML = "Postare inexistentă.";
+    return;
+  }
+
+  const p = data.post;
+  document.getElementById("post").innerHTML = `
+    <h2>${p.title}</h2>
+    <p>${p.content}</p>
+    <small>de ${p.username} • ${p.created_at}</small>
+  `;
+
+  const box = document.getElementById("comments");
+  box.innerHTML = "";
+
+  data.comments.forEach(c => {
+    box.innerHTML += `
+      <div class="comment">
+        <b>${c.username}</b><br>
+        ${c.content}<br>
+        <small>${c.created_at}</small>
+      </div>
+    `;
+  });
+}
+
+async function addComment() {
+  const content = document.getElementById("commentText").value;
+  await api("/comments", "POST", { post_id: postId, content });
+  loadPost();
+}
+
+loadPost();
+</script>
+
+</body>
+</html>

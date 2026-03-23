@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Forum</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>Forum</h1>
+  <button onclick="logout()">Logout</button>
+
+  <h2>Crează o postare</h2>
+  <input id="title" placeholder="Titlu">
+  <textarea id="content" placeholder="Conținut"></textarea>
+  <button onclick="createPost()">Postează</button>
+
+  <h2>Postări recente</h2>
+  <div id="posts"></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+async function loadPosts() {
+  const posts = await api("/posts");
+  const box = document.getElementById("posts");
+  box.innerHTML = "";
+
+  posts.forEach(p => {
+    box.innerHTML += `
+      <div class="post">
+        <h3><a href="post.html?id=${p.id}">${p.title}</a></h3>
+        <small>de ${p.username} • ${p.created_at}</small>
+      </div>
+    `;
+  });
+}
+
+async function createPost() {
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+
+  const res = await api("/posts", "POST", { title, content });
+
+  if (res.error) alert(res.error);
+  else loadPosts();
+}
+
+loadPosts();
+</script>
+
+</body>
+</html>
